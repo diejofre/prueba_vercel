@@ -1,0 +1,30 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup Environmentttt
+        run: |
+          mkdir -p deploy_test
+          echo "Test file for deployment" > deploy_test/hello.txt
+
+      - name: Setup SSH for Lightsail
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_PRIVATE_KEY }}" > ~/.ssh/id_lightsail
+          chmod 600 ~/.ssh/id_lightsail
+          ssh-keyscan -H ${{ secrets.LIGHTSAIL_HOST }} >> ~/.ssh/known_hosts
+        env:
+          LIGHTSAIL_HOST: 3.211.43.0
+
+      - name: Deploy Test File to Lightsail using SCP
+        run: |
+          scp -i ~/.ssh/id_lightsail deploy_test/hello.txt ${{ secrets.LIGHTSAIL_USER }}@${{ secrets.LIGHTSAIL_HOST }}:/stack/spanishwithalex/SWA/test_deploy/
+        env:
+          LIGHTSAIL_HOST: 3.211.43.0
+          LIGHTSAIL_USER: bitnami
